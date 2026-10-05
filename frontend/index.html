@@ -98,19 +98,27 @@
 
     <!-- Ventana emergente (Modal) -->
     <div id="add-modal" class="modal-overlay hidden">
+        <!-- Dentro de tu modal -->
         <div class="modal-content">
-            <h3>Nueva Tarea</h3>
-            
-            <input type="text" id="new-title" placeholder="Ej: Entregar práctica..." class="modal-input">
-            
-            <label for="new-date" class="modal-label">Fecha del evento</label>
-            <input type="date" id="new-date" class="modal-input">
-            
-            <input type="number" id="new-xp" placeholder="XP a ganar (ej: 50)" class="modal-input">
-            
+            <h2>Nueva Tarea</h2>
+
+            <!-- Campo 1: Título -->
+            <label for="task-title" class="form-label">Título</label>
+            <input type="text" id="task-title" class="form-input" placeholder="Ej: Entregar práctica...">
+
+            <!-- Campo 2: Fecha -->
+            <label for="task-date" class="form-label">Fecha del evento</label>
+            <!-- El atributo min lo controlaremos por JS -->
+            <input type="date" id="task-date" class="form-input">
+
+            <!-- Campo 3: XP -->
+            <label for="task-xp" class="form-label">XP</label>
+            <input type="number" id="task-xp" class="form-input" placeholder="ej: 50">
+
+            <!-- Botones -->
             <div class="modal-actions">
-                <button id="cancel-btn" class="cancel-btn">Cancelar</button>
-                <button id="save-btn" class="action-btn">Guardar</button>
+                <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button type="button" class="btn btn-save" onclick="saveTask()">Guardar</button>
             </div>
         </div>
     </div>

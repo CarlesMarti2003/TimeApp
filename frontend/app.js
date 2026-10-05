@@ -28,6 +28,7 @@ const fabAdd = document.getElementById('fab-add');
 const addModal = document.getElementById('add-modal');
 const cancelBtn = document.getElementById('cancel-btn');
 const saveBtn = document.getElementById('save-btn');
+const dateInput = document.getElementById('task-date');
 
 
 // ==========================================
@@ -223,6 +224,18 @@ document.getElementById('next-month').addEventListener('click', () => {
     currentDate.setMonth(currentDate.getMonth() + 1);
     renderCalendar();
 });
+
+if (dateInput) {
+    // Generar la fecha de hoy en formato YYYY-MM-DD
+    const today = new Date();
+    
+    // Ajuste de zona horaria para evitar que el UTC cambie el día si es muy tarde
+    const offset = today.getTimezoneOffset() * 60000; 
+    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
+    
+    // Establecer el mínimo permitido
+    dateInput.setAttribute('min', localISOTime);
+}
 
 
 // ==========================================

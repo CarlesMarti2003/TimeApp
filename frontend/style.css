@@ -334,10 +334,44 @@ h2 {
     margin-top: 10px;
 }
 
-.cancel-btn {
-    background: transparent;
+/* Clase base para que ambos botones tengan la misma forma y tamaño */
+.btn {
+    padding: 12px 24px;
     border: none;
-    color: #E74C3C;
-    font-weight: bold;
+    border-radius: 8px; /* Misma curvatura que los inputs */
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    flex: 1; /* Hace que ambos botones ocupen el mismo ancho */
+    margin: 0 5px; /* Separación entre ellos */
+}
+/* Colores específicos para Guardar (Verde) y Cancelar (Rojo) */
+.btn-save {
+    background-color: #134e3a; /* El verde oscuro que ya usas */
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #ff3b30; /* Rojo estándar de iOS */
+    color: white;
+}
+.form-input {
+    width: 100%;
+    box-sizing: border-box; /* Fundamental para que el padding no sume al width y se salga */
+    padding: 12px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Esquinas redondeadas estilo iOS */
+    font-size: 16px;
+    background-color: #fff; /* Todos blancos, eliminamos el fondo gris de la fecha */
+    font-family: inherit;
+}
+
+/* Estilo para los nuevos títulos (labels) */
+.form-label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
 }

@@ -1,7 +1,7 @@
 // ==========================================
 // 1. CONFIGURACIÓN DE CACHÉ
 // ==========================================
-const CACHE_NAME = 'timeapp-v6'; 
+const CACHE_NAME = 'timeapp-v8'; 
 const assets = [
     './',
     './index.html',

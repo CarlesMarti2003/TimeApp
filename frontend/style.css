@@ -221,3 +221,82 @@ h2 {
 }
 .modal-actions { display: flex; justify-content: space-between; margin-top: 10px; }
 .cancel-btn { background: transparent; border: none; color: #E74C3C; font-weight: bold; cursor: pointer; }
+
+/* Etiqueta del modal */
+.modal-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #7F8C8D;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* Espacio extra al final para que el menú no tape el contenido */
+body {
+    padding-bottom: 80px; 
+}
+
+/* Menú de navegación inferior (Estilo iOS) */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--blanco);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    padding-bottom: env(safe-area-inset-bottom, 15px); /* Ajuste para la barra de inicio del iPhone */
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+}
+.nav-item {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: #95A5A6;
+    cursor: pointer;
+}
+.nav-item.active {
+    color: var(--verde-botella);
+    font-weight: bold;
+}
+.nav-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+/* Ajuste del botón flotante */
+.fab-btn {
+    bottom: 100px; /* Lo subimos por encima del menú */
+}
+
+/* Pantalla Tareas Pendientes */
+.tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+.tasks-header h2 {
+    font-size: 20px;
+}
+.sort-select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--gris-claro);
+    background-color: var(--blanco);
+    font-size: 13px;
+    color: var(--texto);
+}
+.event-date {
+    display: block;
+    font-size: 12px;
+    color: #7F8C8D;
+    margin-top: 5px;
+}

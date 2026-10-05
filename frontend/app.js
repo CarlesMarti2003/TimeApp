@@ -27,36 +27,38 @@ async function loadUserProfile() {
 }
 
 // 2. Cargar las tareas pendientes desde la base de datos
+// FUNCIÓN MODIFICADA: Cargar SOLO los eventos de hoy en "Hogar"
 async function loadEvents() {
     try {
         const response = await fetch(`${API_URL}/events`);
         const events = await response.json();
         
-        eventsList.innerHTML = ''; // Limpiamos el texto de "Cargando..."
+        // Obtener la fecha de hoy en formato YYYY-MM-DD
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         
-        // Si no hay eventos, mostramos un mensaje
-        if (events.length === 0) {
-            eventsList.innerHTML = '<p class="loading-text">¡Todo completado por hoy!</p>';
+        // Filtrar tareas que son para HOY y están pendientes
+        const todaysEvents = events.filter(ev => ev.start_time === todayStr && ev.status === 'pending');
+        
+        eventsList.innerHTML = '';
+        if (todaysEvents.length === 0) {
+            eventsList.innerHTML = '<p style="text-align:center; color: #7F8C8D; font-size: 14px;">¡Todo completado por hoy!</p>';
             return;
         }
 
-        // Generamos una tarjeta HTML por cada evento pendiente
-        events.forEach(event => {
-            const li = document.createElement('li');
-            
-            li.innerHTML = `
-                <div class="task-info">
-                    <p class="task-title">${event.title}</p>
-                    <span class="task-xp">+${event.xp_reward} XP</span>
+        todaysEvents.forEach(event => {
+            const el = document.createElement('div');
+            el.className = 'event-card';
+            el.innerHTML = `
+                <div>
+                    <h4>${event.title}</h4>
                 </div>
-                <button class="action-btn" onclick="completeEvent(${event.id})">Completar</button>
+                <button class="action-btn" onclick="completeEvent(${event.id}, ${event.xp_reward})">+${event.xp_reward} XP</button>
             `;
-            
-            eventsList.appendChild(li);
+            eventsList.appendChild(el);
         });
     } catch (error) {
         console.error('Error cargando eventos:', error);
-        eventsList.innerHTML = '<p class="loading-text">Error al conectar con el servidor.</p>';
     }
 }
 
@@ -200,3 +202,76 @@ document.addEventListener('DOMContentLoaded', () => {
     loadEvents();
     renderCalendar(); // Añadimos esto
 });
+
+// VARIABLES DE NAVEGACIÓN
+const navHome = document.getElementById('nav-home');
+const navTasks = document.getElementById('nav-tasks');
+const homeSection = document.getElementById('home-section');
+const pendingSection = document.getElementById('pending-tasks-section');
+const sortSelect = document.getElementById('sort-tasks');
+const allTasksList = document.getElementById('all-tasks-list');
+
+// NUEVA FUNCIÓN: Cargar y ordenar TODAS las tareas pendientes
+async function loadAllTasks() {
+    try {
+        const response = await fetch(`${API_URL}/events`);
+        let events = await response.json();
+        events = events.filter(ev => ev.status === 'pending');
+        
+        // Lógica de ordenación
+        const sortType = sortSelect.value;
+        if(sortType === 'date-asc') {
+            events.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
+        } else if(sortType === 'date-desc') {
+            events.sort((a,b) => new Date(b.start_time) - new Date(a.start_time));
+        } else if(sortType === 'xp-desc') {
+            events.sort((a,b) => b.xp_reward - a.xp_reward);
+        } else if(sortType === 'xp-asc') {
+            events.sort((a,b) => a.xp_reward - b.xp_reward);
+        }
+
+        allTasksList.innerHTML = '';
+        if (events.length === 0) {
+            allTasksList.innerHTML = '<p style="text-align:center; color: #7F8C8D;">No hay tareas pendientes.</p>';
+            return;
+        }
+
+        events.forEach(event => {
+            const dateObj = new Date(event.start_time);
+            const formattedDate = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+            
+            const el = document.createElement('div');
+            el.className = 'event-card';
+            el.innerHTML = `
+                <div>
+                    <h4>${event.title}</h4>
+                    <span class="event-date">📅 Para el ${formattedDate}</span>
+                </div>
+                <button class="action-btn" onclick="completeEvent(${event.id}, ${event.xp_reward})">+${event.xp_reward} XP</button>
+            `;
+            allTasksList.appendChild(el);
+        });
+    } catch (error) {
+        console.error('Error cargando todas las tareas:', error);
+    }
+}
+
+// NAVEGACIÓN: Cambiar entre pestañas
+navHome.addEventListener('click', () => {
+    homeSection.classList.remove('hidden');
+    pendingSection.classList.add('hidden');
+    navHome.classList.add('active');
+    navTasks.classList.remove('active');
+    loadEvents(); // Refrescar los datos de hoy al volver
+});
+
+navTasks.addEventListener('click', () => {
+    homeSection.classList.add('hidden');
+    pendingSection.classList.remove('hidden');
+    navHome.classList.remove('active');
+    navTasks.classList.add('active');
+    loadAllTasks(); // Cargar la lista completa al entrar
+});
+
+// Evento para reordenar la lista al cambiar el filtro
+sortSelect.addEventListener('change', loadAllTasks);

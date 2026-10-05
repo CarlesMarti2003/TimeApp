@@ -31,51 +31,67 @@
         </div>
     </header>
 
-    <!-- Contenido principal -->
     <main>
-        <!-- NUEVO: Sección del Calendario -->
-        <section class="calendar-section">
-            <div class="calendar-header">
-                <button id="prev-month" class="cal-nav">&lt;</button>
-                <h2 id="month-year-display">Mes Año</h2>
-                <button id="next-month" class="cal-nav">&gt;</button>
-            </div>
-            <div class="calendar-grid">
-                <div class="day-name">L</div><div class="day-name">M</div><div class="day-name">X</div>
-                <div class="day-name">J</div><div class="day-name">V</div><div class="day-name">S</div><div class="day-name">D</div>
-            </div>
-            <div id="calendar-days" class="calendar-days">
-                <!-- JS insertará los números aquí -->
-            </div>
-        </section>
+        <!-- VISTA 1: HOGAR (Pantalla principal original) -->
+        <div id="home-section">
+            <section class="calendar-section">
+                <!-- (Deja aquí dentro el código del calendario que ya tenías) -->
+                <div class="calendar-header">
+                    <button id="prev-month" class="cal-nav">&lt;</button>
+                    <h2 id="month-year-display">Mes Año</h2>
+                    <button id="next-month" class="cal-nav">&gt;</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-name">L</div><div class="day-name">M</div><div class="day-name">X</div>
+                    <div class="day-name">J</div><div class="day-name">V</div><div class="day-name">S</div><div class="day-name">D</div>
+                </div>
+                <div id="calendar-days" class="calendar-days"></div>
+            </section>
 
-        <!-- Sección de Eventos Pendientes -->
-        <section class="events-section">
-            <h2>Mi Día</h2>
-            <ul id="events-list" class="card-list">
-                <!-- JavaScript rellenará esto con los datos del servidor -->
-                <p class="loading-text">Cargando tareas...</p>
-            </ul>
-        </section>
+            <section class="events-section">
+                <h3>Tareas para hoy</h3>
+                <div id="events-list" class="events-list">
+                    <!-- Eventos de hoy se cargarán aquí -->
+                </div>
+            </section>
 
-        <!-- Sección de Recompensas -->
-        <section class="rewards-section">
-            <h2>Recompensas Disponibles</h2>
-            <ul id="rewards-list" class="card-list">
-                <!-- JavaScript rellenará esto también -->
-            </ul>
+            <section class="rewards-section">
+                <h3>Recompensas Disponibles</h3>
+                <div id="rewards-list" class="rewards-list">
+                    <!-- Recompensas -->
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: TAREAS PENDIENTES (Oculta por defecto) -->
+        <section id="pending-tasks-section" class="hidden">
+            <div class="tasks-header">
+                <h2>Todas las tareas</h2>
+                <select id="sort-tasks" class="sort-select">
+                    <option value="date-asc">Fecha (más próxima)</option>
+                    <option value="date-desc">Fecha (más lejana)</option>
+                    <option value="xp-desc">XP (Mayor a menor)</option>
+                    <option value="xp-asc">XP (Menor a mayor)</option>
+                </select>
+            </div>
+            <div id="all-tasks-list" class="events-list">
+                <!-- Todas las tareas irán aquí -->
+            </div>
         </section>
     </main>
-    
+
     <!-- NUEVO: Botón Flotante -->
     <button id="fab-add" class="fab-btn">+</button>
 
-    <!-- NUEVO: Modal para crear evento (oculto por defecto) -->
+    <!-- Modal modificado con la etiqueta visual para la fecha -->
     <div id="add-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Nueva Tarea</h3>
-            <input type="text" id="new-title" placeholder="Ej: Entregar práctica UJI..." class="modal-input">
+            <input type="text" id="new-title" placeholder="Ej: Entregar práctica..." class="modal-input">
+            
+            <label for="new-date" class="modal-label">Fecha del evento</label>
             <input type="date" id="new-date" class="modal-input">
+            
             <input type="number" id="new-xp" placeholder="XP a ganar (ej: 50)" class="modal-input">
             <div class="modal-actions">
                 <button id="cancel-btn" class="cancel-btn">Cancelar</button>
@@ -83,6 +99,18 @@
             </div>
         </div>
     </div>
+    
+    <!-- NUEVO: Menú de Navegación Inferior -->
+    <nav class="bottom-nav">
+        <button id="nav-home" class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span>Hogar</span>
+        </button>
+        <button id="nav-tasks" class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span>Tareas</span>
+        </button>
+    </nav>
     <!-- Enlace a la lógica del frontend -->
     <script src="app.js"></script>
 </body>

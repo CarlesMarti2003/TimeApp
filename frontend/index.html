@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Esta etiqueta evita que el usuario haga zoom, dando sensación de app nativa -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TimeApp</title>
+    
+    <!-- Enlace a los estilos y al manifest -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Etiquetas específicas para que iOS (Safari) la trate como una App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TimeApp">
+    <!-- Más adelante crearemos el logo y lo enlazaremos aquí -->
+    <!-- <link rel="apple-touch-icon" href="icono-192.png"> -->
+</head>
+<body>
+    <!-- Cabecera con las estadísticas del usuario (Gamificación) -->
+    <header class="app-header">
+        <h1>TimeApp</h1>
+        <div class="user-stats">
+            <span id="user-level" class="level-badge">Nivel 1</span>
+            <span id="user-xp" class="xp-text">0 XP</span>
+        </div>
+        <!-- Barra de progreso para el nivel -->
+        <div class="progress-bar">
+            <div id="xp-bar" class="progress-fill" style="width: 0%;"></div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main>
+        <!-- Sección de Eventos Pendientes -->
+        <section class="events-section">
+            <h2>Mi Día</h2>
+            <ul id="events-list" class="card-list">
+                <!-- JavaScript rellenará esto con los datos del servidor -->
+                <p class="loading-text">Cargando tareas...</p>
+            </ul>
+        </section>
+
+        <!-- Sección de Recompensas -->
+        <section class="rewards-section">
+            <h2>Recompensas Disponibles</h2>
+            <ul id="rewards-list" class="card-list">
+                <!-- JavaScript rellenará esto también -->
+            </ul>
+        </section>
+    </main>
+
+    <!-- Enlace a la lógica del frontend -->
+    <script src="app.js"></script>
+</body>
+</html>

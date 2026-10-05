@@ -357,15 +357,19 @@ h2 {
 }
 .form-input {
     width: 100%;
-    box-sizing: border-box; /* Fundamental para que el padding no sume al width y se salga */
+    height: 48px; /* Forzamos a que todos tengan exactamente la misma altura */
+    box-sizing: border-box; 
     padding: 12px;
     margin-top: 5px;
     margin-bottom: 15px;
     border: 1px solid #ccc;
-    border-radius: 8px; /* Esquinas redondeadas estilo iOS */
+    border-radius: 8px; 
     font-size: 16px;
-    background-color: #fff; /* Todos blancos, eliminamos el fondo gris de la fecha */
+    background-color: #fff; 
     font-family: inherit;
+    /* Bloquea la inyección de volumen extra que hace iOS al input date */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* Estilo para los nuevos títulos (labels) */

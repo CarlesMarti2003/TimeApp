@@ -267,9 +267,10 @@ fabAdd.addEventListener('click', () => addModal.classList.remove('hidden'));
 cancelBtn.addEventListener('click', () => addModal.classList.add('hidden'));
 
 saveBtn.addEventListener('click', async () => {
-    const title = document.getElementById('new-title').value;
-    const date = document.getElementById('new-date').value;
-    const xp = document.getElementById('new-xp').value;
+    // ACTUALIZA ESTOS TRES IDs:
+    const title = document.getElementById('task-title').value;
+    const date = document.getElementById('task-date').value;
+    const xp = document.getElementById('task-xp').value;
     
     if(!title || !date || !xp) return alert("Rellena todos los campos");
 
@@ -282,9 +283,10 @@ saveBtn.addEventListener('click', async () => {
         
         if (response.ok) {
             addModal.classList.add('hidden');
-            document.getElementById('new-title').value = '';
-            document.getElementById('new-date').value = '';
-            document.getElementById('new-xp').value = '';
+            // ACTUALIZA TAMBIÉN ESTOS TRES PARA QUE SE LIMPIEN AL GUARDAR:
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-date').value = '';
+            document.getElementById('task-xp').value = '';
             
             loadEvents();
             if(!pendingSection.classList.contains('hidden')) {

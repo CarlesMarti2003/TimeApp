@@ -1,16 +1,26 @@
+# ==========================================
+# 1. CONFIGURACIÓN Y DEPENDENCIAS
+# ==========================================
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-CORS(app) # Permite que tu frontend se comunique con esta API
+CORS(app) # Permite que el frontend en Vercel se comunique con esta API
 
+# ==========================================
+# 2. CONEXIÓN A BASE DE DATOS
+# ==========================================
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# 1. Obtener eventos pendientes
+# ==========================================
+# 3. RUTAS DE EVENTOS (TAREAS)
+# ==========================================
+
+# Obtener eventos pendientes
 @app.route('/events', methods=['GET'])
 def get_events():
     conn = get_db_connection()
@@ -18,6 +28,7 @@ def get_events():
     conn.close()
     return jsonify([dict(ix) for ix in events])
 
+# Crear un evento nuevo
 @app.route('/events', methods=['POST'])
 def add_event():
     # Recibimos los datos que envía el frontend
@@ -39,7 +50,7 @@ def add_event():
     
     return jsonify({'mensaje': 'Evento creado correctamente'}), 201
 
-# 2. Completar un evento (Lógica de gamificación y XP)
+# Completar un evento (Lógica de gamificación y XP)
 @app.route('/events/<int:event_id>/complete', methods=['POST'])
 def complete_event(event_id):
     conn = get_db_connection()
@@ -77,7 +88,11 @@ def complete_event(event_id):
         'nivel_actual': nuevo_nivel
     })
 
-# 3. Obtener el perfil del usuario (para ver su Nivel y XP)
+# ==========================================
+# 4. RUTAS DE PERFIL DE USUARIO
+# ==========================================
+
+# Obtener el perfil del usuario (para ver su Nivel y XP)
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     conn = get_db_connection()
@@ -85,5 +100,8 @@ def get_user(user_id):
     conn.close()
     return jsonify(dict(user))
 
+# ==========================================
+# 5. EJECUCIÓN DEL SERVIDOR LOCAL
+# ==========================================
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -98,3 +98,105 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.error('Error al registrar el Service Worker.', err));
     });
 }
+
+// Variables del calendario y modal
+let currentDate = new Date();
+const monthYearDisplay = document.getElementById('month-year-display');
+const calendarDays = document.getElementById('calendar-days');
+const fabAdd = document.getElementById('fab-add');
+const addModal = document.getElementById('add-modal');
+const cancelBtn = document.getElementById('cancel-btn');
+const saveBtn = document.getElementById('save-btn');
+
+// 4. Lógica del Calendario
+async function renderCalendar() {
+    currentDate.setDate(1);
+    const month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+    
+    // Nombres de los meses
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+    
+    const firstDayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1; // Ajustar a lunes
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    
+    calendarDays.innerHTML = '';
+    
+    // Obtener los eventos del servidor para marcar los días
+    const response = await fetch(`${API_URL}/events`);
+    const events = await response.json();
+    const eventDates = events.map(ev => ev.start_time); // Extraemos solo las fechas
+
+    // Rellenar espacios vacíos del principio del mes
+    for (let x = 0; x < firstDayIndex; x++) {
+        calendarDays.innerHTML += `<div></div>`;
+    }
+    
+    // Rellenar los días
+    for (let i = 1; i <= lastDay; i++) {
+        // Formatear la fecha actual a YYYY-MM-DD para compararla
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        
+        let classes = 'cal-day';
+        if (i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+            classes += ' today';
+        }
+        if (eventDates.includes(dateStr)) {
+            classes += ' has-event'; // Marcamos visualmente si hay evento ese día
+        }
+        
+        calendarDays.innerHTML += `<div class="${classes}">${i}</div>`;
+    }
+}
+
+document.getElementById('prev-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+});
+
+document.getElementById('next-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+});
+
+// 5. Lógica del Modal y creación de eventos
+fabAdd.addEventListener('click', () => addModal.classList.remove('hidden'));
+cancelBtn.addEventListener('click', () => addModal.classList.add('hidden'));
+
+saveBtn.addEventListener('click', async () => {
+    const title = document.getElementById('new-title').value;
+    const date = document.getElementById('new-date').value;
+    const xp = document.getElementById('new-xp').value;
+    
+    if(!title || !date || !xp) return alert("Rellena todos los campos");
+
+    try {
+        const response = await fetch(`${API_URL}/events`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, date: date, xp_reward: parseInt(xp) })
+        });
+        
+        if (response.ok) {
+            addModal.classList.add('hidden');
+            // Limpiar formulario
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-date').value = '';
+            document.getElementById('new-xp').value = '';
+            
+            // Recargar interfaz
+            loadEvents();
+            renderCalendar();
+        }
+    } catch (error) {
+        console.error('Error guardando evento:', error);
+    }
+});
+
+// Añadimos renderCalendar al evento global de carga inicial (busca la línea que ya tenías y añade la función)
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+    loadEvents();
+    renderCalendar(); // Añadimos esto
+});

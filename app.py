@@ -18,6 +18,27 @@ def get_events():
     conn.close()
     return jsonify([dict(ix) for ix in events])
 
+@app.route('/events', methods=['POST'])
+def add_event():
+    # Recibimos los datos que envía el frontend
+    data = request.get_json()
+    titulo = data.get('title')
+    xp = data.get('xp_reward')
+    fecha = data.get('date') # Recibimos la fecha elegida en el calendario
+    
+    # El status por defecto será 'pending' y el usuario será el ID 1
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO events (title, xp_reward, start_time, status, user_id) 
+        VALUES (?, ?, ?, 'pending', 1)
+    ''', (titulo, xp, fecha))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'mensaje': 'Evento creado correctamente'}), 201
+
 # 2. Completar un evento (Lógica de gamificación y XP)
 @app.route('/events/<int:event_id>/complete', methods=['POST'])
 def complete_event(event_id):

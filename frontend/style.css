@@ -152,3 +152,72 @@ h2 {
     font-style: italic;
     font-size: 15px;
 }
+
+/* Calendario */
+.calendar-section {
+    background-color: var(--blanco);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.cal-nav { background: none; border: none; font-size: 20px; color: var(--verde-botella); cursor: pointer; }
+.calendar-grid, .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    gap: 5px;
+}
+.day-name { font-size: 12px; color: #7F8C8D; font-weight: bold; margin-bottom: 10px; }
+.cal-day {
+    padding: 8px 0;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.cal-day.has-event { background-color: rgba(20, 143, 119, 0.2); color: var(--verde-botella); font-weight: bold; }
+.cal-day.today { background-color: var(--verde-botella); color: var(--blanco); }
+
+/* Botón Flotante (FAB) */
+.fab-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--verde-botella);
+    color: white;
+    border-radius: 50%;
+    font-size: 30px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(11, 83, 69, 0.4);
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Modal Emergente */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 200;
+}
+.modal-overlay.hidden { display: none; }
+.modal-content {
+    background: white; padding: 25px; border-radius: 20px;
+    width: 85%; max-width: 350px;
+}
+.modal-input {
+    width: 100%; padding: 12px; margin-bottom: 15px;
+    border: 1px solid var(--gris-claro); border-radius: 10px;
+    box-sizing: border-box; font-family: inherit;
+}
+.modal-actions { display: flex; justify-content: space-between; margin-top: 10px; }
+.cancel-btn { background: transparent; border: none; color: #E74C3C; font-weight: bold; cursor: pointer; }

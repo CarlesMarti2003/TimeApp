@@ -33,6 +33,22 @@
 
     <!-- Contenido principal -->
     <main>
+        <!-- NUEVO: Sección del Calendario -->
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <button id="prev-month" class="cal-nav">&lt;</button>
+                <h2 id="month-year-display">Mes Año</h2>
+                <button id="next-month" class="cal-nav">&gt;</button>
+            </div>
+            <div class="calendar-grid">
+                <div class="day-name">L</div><div class="day-name">M</div><div class="day-name">X</div>
+                <div class="day-name">J</div><div class="day-name">V</div><div class="day-name">S</div><div class="day-name">D</div>
+            </div>
+            <div id="calendar-days" class="calendar-days">
+                <!-- JS insertará los números aquí -->
+            </div>
+        </section>
+
         <!-- Sección de Eventos Pendientes -->
         <section class="events-section">
             <h2>Mi Día</h2>
@@ -50,7 +66,23 @@
             </ul>
         </section>
     </main>
+    
+    <!-- NUEVO: Botón Flotante -->
+    <button id="fab-add" class="fab-btn">+</button>
 
+    <!-- NUEVO: Modal para crear evento (oculto por defecto) -->
+    <div id="add-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Nueva Tarea</h3>
+            <input type="text" id="new-title" placeholder="Ej: Entregar práctica UJI..." class="modal-input">
+            <input type="date" id="new-date" class="modal-input">
+            <input type="number" id="new-xp" placeholder="XP a ganar (ej: 50)" class="modal-input">
+            <div class="modal-actions">
+                <button id="cancel-btn" class="cancel-btn">Cancelar</button>
+                <button id="save-btn" class="action-btn">Guardar</button>
+            </div>
+        </div>
+    </div>
     <!-- Enlace a la lógica del frontend -->
     <script src="app.js"></script>
 </body>

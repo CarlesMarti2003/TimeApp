@@ -2,7 +2,9 @@
 // 1. CONFIGURACIÓN Y VARIABLES GLOBALES
 // ==========================================
 const API_URL = 'https://CarlesMarti.pythonanywhere.com';
-const USER_ID = 1; // Usamos el ID 1 de prueba
+
+// Intentamos recuperar el usuario guardado en el dispositivo
+let USERNAME = localStorage.getItem('timeapp_username');
 
 // Elementos DOM - Perfil
 const userLevelEl = document.getElementById('user-level');
@@ -34,9 +36,20 @@ const dateInput = document.getElementById('task-date');
 // ==========================================
 // 2. INICIALIZACIÓN DE LA APLICACIÓN
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadUserProfile();
-    loadEvents();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Si es la primera vez que entra, le pedimos un nombre
+    if (!USERNAME) {
+        USERNAME = prompt("Bienvenido a TimeApp. Introduce tu nombre de usuario único:");
+        if (!USERNAME || USERNAME.trim() === "") {
+            document.body.innerHTML = "<h2>Debes recargar la página e introducir un usuario para usar TimeApp.</h2>";
+            return; 
+        }
+        // Guardamos el usuario en este navegador/móvil
+        localStorage.setItem('timeapp_username', USERNAME);
+    }
+
+    await loadUserProfile();
+    await loadEvents();
     renderCalendar();
 });
 
@@ -57,7 +70,7 @@ if ('serviceWorker' in navigator) {
 // Cargar estadísticas del usuario
 async function loadUserProfile() {
     try {
-        const response = await fetch(`${API_URL}/user/${USER_ID}`);
+        const response = await fetch(`${API_URL}/user?username=${USERNAME}`);
         const user = await response.json();
         
         userLevelEl.textContent = `Nivel ${user.level}`;
@@ -73,7 +86,7 @@ async function loadUserProfile() {
 // Cargar SOLO los eventos de HOY en la pestaña "Hogar"
 async function loadEvents() {
     try {
-        const response = await fetch(`${API_URL}/events`);
+        const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
         const events = await response.json();
         
         const today = new Date();
@@ -109,7 +122,7 @@ async function loadEvents() {
 // Cargar y ordenar TODAS las tareas pendientes en la pestaña "Tareas"
 async function loadAllTasks() {
     try {
-        const response = await fetch(`${API_URL}/events`);
+        const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
         let events = await response.json();
         events = events.filter(ev => ev.status === 'pending');
         
@@ -154,7 +167,9 @@ async function loadAllTasks() {
 async function completeEvent(eventId) {
     try {
         const response = await fetch(`${API_URL}/events/${eventId}/complete`, {
-            method: 'POST'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: USERNAME })
         });
         const data = await response.json();
         
@@ -192,7 +207,7 @@ async function renderCalendar() {
     
     calendarDays.innerHTML = '';
     
-    const response = await fetch(`${API_URL}/events`);
+    const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
     const events = await response.json();
     const eventDates = events.map(ev => ev.start_time);
 
@@ -288,7 +303,12 @@ saveBtn.addEventListener('click', async () => {
         const response = await fetch(`${API_URL}/events`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: title, date: date, xp_reward: parseInt(xp) })
+            body: JSON.stringify({ 
+                username: USERNAME,
+                title: title, 
+                date: date, 
+                xp_reward: parseInt(xp) 
+            })
         });
         
         if (response.ok) {

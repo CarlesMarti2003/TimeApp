@@ -16,6 +16,19 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# Helper: Busca el usuario por su nombre o lo crea si es nuevo
+def get_or_create_user(username, conn):
+    cursor = conn.cursor()
+    user = cursor.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    
+    if not user:
+        # Si no existe, lo creamos con Nivel 1 y 0 XP
+        cursor.execute('INSERT INTO users (username, level, xp_points) VALUES (?, 1, 0)', (username,))
+        conn.commit()
+        user = cursor.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        
+    return user
+
 # ==========================================
 # 3. RUTAS DE EVENTOS (TAREAS)
 # ==========================================
@@ -23,8 +36,15 @@ def get_db_connection():
 # Obtener eventos pendientes
 @app.route('/events', methods=['GET'])
 def get_events():
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'error': 'Se requiere un nombre de usuario'}), 400
+
     conn = get_db_connection()
-    events = conn.execute('SELECT * FROM events WHERE status = "pending"').fetchall()
+    user = get_or_create_user(username, conn)
+    
+    # Filtramos por el user_id del usuario que consulta
+    events = conn.execute('SELECT * FROM events WHERE status = "pending" AND user_id = ?', (user['id'],)).fetchall()
     conn.close()
     return jsonify([dict(ix) for ix in events])
 
@@ -33,17 +53,23 @@ def get_events():
 def add_event():
     # Recibimos los datos que envía el frontend
     data = request.get_json()
+    username = data.get('username')
     titulo = data.get('title')
     xp = data.get('xp_reward')
-    fecha = data.get('date') # Recibimos la fecha elegida en el calendario
+    fecha = data.get('date') 
     
-    # El status por defecto será 'pending' y el usuario será el ID 1
+    if not username or not titulo or not xp or not fecha:
+        return jsonify({'error': 'Faltan datos'}), 400
+
     conn = get_db_connection()
+    user = get_or_create_user(username, conn)
+    
     cursor = conn.cursor()
+    # Asociamos la nueva tarea al ID real del usuario
     cursor.execute('''
         INSERT INTO events (title, xp_reward, start_time, status, user_id) 
-        VALUES (?, ?, ?, 'pending', 1)
-    ''', (titulo, xp, fecha))
+        VALUES (?, ?, ?, 'pending', ?)
+    ''', (titulo, xp, fecha, user['id']))
     
     conn.commit()
     conn.close()
@@ -93,10 +119,14 @@ def complete_event(event_id):
 # ==========================================
 
 # Obtener el perfil del usuario (para ver su Nivel y XP)
-@app.route('/user/<int:user_id>', methods=['GET'])
-def get_user(user_id):
+@app.route('/user', methods=['GET'])
+def get_user():
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'error': 'Se requiere un nombre de usuario'}), 400
+        
     conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    user = get_or_create_user(username, conn)
     conn.close()
     return jsonify(dict(user))
 

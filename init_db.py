@@ -6,14 +6,18 @@ cursor = conexion.cursor()
 
 # 1. Crear las tablas (Usuarios, Eventos, Recompensas)
 cursor.executescript('''
-    CREATE TABLE IF NOT EXISTS users (
+    DROP TABLE IF EXISTS rewards;
+    DROP TABLE IF EXISTS events;
+    DROP TABLE IF EXISTS users;
+
+    CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
+        username TEXT UNIQUE NOT NULL,
         xp_points INTEGER DEFAULT 0,
         level INTEGER DEFAULT 1
     );
 
-    CREATE TABLE IF NOT EXISTS events (
+    CREATE TABLE events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         title TEXT,
@@ -24,7 +28,7 @@ cursor.executescript('''
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
-    CREATE TABLE IF NOT EXISTS rewards (
+    CREATE TABLE rewards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         title TEXT,
@@ -35,7 +39,7 @@ cursor.executescript('''
 ''')
 
 # 2. Insertar datos de prueba
-cursor.execute("INSERT INTO users (name, xp_points, level) VALUES ('Carles', 0, 1)")
+cursor.execute("INSERT INTO users (username, xp_points, level) VALUES ('Carles', 0, 1)")
 
 # Eventos para sumar XP
 cursor.execute("INSERT INTO events (user_id, title, status, xp_reward) VALUES (1, 'Partido de fútbol sala', 'pending', 50)")

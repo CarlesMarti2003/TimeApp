@@ -267,12 +267,22 @@ fabAdd.addEventListener('click', () => addModal.classList.remove('hidden'));
 cancelBtn.addEventListener('click', () => addModal.classList.add('hidden'));
 
 saveBtn.addEventListener('click', async () => {
-    // ACTUALIZA ESTOS TRES IDs:
     const title = document.getElementById('task-title').value;
     const date = document.getElementById('task-date').value;
     const xp = document.getElementById('task-xp').value;
     
     if(!title || !date || !xp) return alert("Rellena todos los campos");
+
+    // --- NUEVO: Validar que la fecha no es del pasado ---
+    const today = new Date();
+    // Ajuste de zona horaria para obtener la fecha local exacta de hoy
+    const offset = today.getTimezoneOffset() * 60000; 
+    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
+    
+    if (date < localISOTime) {
+        return alert("No puedes programar tareas en el pasado. Selecciona la fecha de hoy o una futura.");
+    }
+    // ----------------------------------------------------
 
     try {
         const response = await fetch(`${API_URL}/events`, {
@@ -283,7 +293,6 @@ saveBtn.addEventListener('click', async () => {
         
         if (response.ok) {
             addModal.classList.add('hidden');
-            // ACTUALIZA TAMBIÉN ESTOS TRES PARA QUE SE LIMPIEN AL GUARDAR:
             document.getElementById('task-title').value = '';
             document.getElementById('task-date').value = '';
             document.getElementById('task-xp').value = '';

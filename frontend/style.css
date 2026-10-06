@@ -355,9 +355,10 @@ h2 {
     background-color: #ff3b30; /* Rojo estándar de iOS */
     color: white;
 }
+/* Estilo base para todos los inputs */
 .form-input {
     width: 100%;
-    height: 48px; /* Forzamos a que todos tengan exactamente la misma altura */
+    height: 48px; /* Mantiene la misma altura para todos */
     box-sizing: border-box; 
     padding: 12px;
     margin-top: 5px;
@@ -367,9 +368,20 @@ h2 {
     font-size: 16px;
     background-color: #fff; 
     font-family: inherit;
-    /* Bloquea la inyección de volumen extra que hace iOS al input date */
+}
+
+/* Quitamos el estilo nativo SOLO a los campos de texto y número */
+/* Esto evita la sombra interior fea en iOS, pero deja el calendario intacto */
+input[type="text"].form-input, 
+input[type="number"].form-input {
     -webkit-appearance: none;
     appearance: none;
+}
+
+/* Ajuste específico para que la fecha quede bien alineada en iOS */
+input[type="date"].form-input {
+    line-height: normal; /* Evita que el texto de la fecha se corte */
+    position: relative;
 }
 
 /* Estilo para los nuevos títulos (labels) */

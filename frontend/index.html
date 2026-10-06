@@ -16,126 +16,150 @@
     <!-- <link rel="apple-touch-icon" href="icono-192.png"> -->
 </head>
 <body>
-    <!-- ========================================== -->
-    <!-- CABECERA: Estadísticas del usuario         -->
-    <!-- ========================================== -->
-    <header class="app-header">
-        <h1>TimeApp</h1>
-        <div class="user-stats">
-            <span id="user-level" class="level-badge">Nivel 1</span>
-            <span id="user-xp" class="xp-text">0 XP</span>
-        </div>
-        <div class="progress-bar">
-            <div id="xp-bar" class="progress-fill" style="width: 0%;"></div>
-        </div>
-    </header>
 
     <!-- ========================================== -->
-    <!-- CONTENIDO PRINCIPAL                        -->
+    <!-- PANTALLA DE LOGIN                          -->
     <!-- ========================================== -->
-    <main>
-        <!-- VISTA 1: HOGAR -->
-        <div id="home-section">
-            <!-- 1.1 Calendario Mensual -->
-            <section class="calendar-section">
-                <div class="calendar-header">
-                    <button id="prev-month" class="cal-nav">&lt;</button>
-                    <h2 id="month-year-display">Mes Año</h2>
-                    <button id="next-month" class="cal-nav">&gt;</button>
-                </div>
-                <div class="calendar-grid">
-                    <div class="day-name">L</div>
-                    <div class="day-name">M</div>
-                    <div class="day-name">X</div>
-                    <div class="day-name">J</div>
-                    <div class="day-name">V</div>
-                    <div class="day-name">S</div>
-                    <div class="day-name">D</div>
-                </div>
-                <div id="calendar-days" class="calendar-days"></div>
-            </section>
+    <div id="login-screen" class="login-overlay">
+        <div class="login-box">
+            <h2 style="color: #0B5345; text-align: center; margin-top: 0;">Iniciar Sesión</h2>
+            <form id="login-form">
+                <label for="login-user" class="form-label">Nombre Usuario</label>
+                <input type="text" id="login-user" class="form-input" required>
 
-            <!-- 1.2 Tareas del Día -->
-            <section class="events-section">
-                <h3>Tareas para hoy</h3>
-                <div id="events-list" class="events-list">
+                <label for="login-email" class="form-label">Email</label>
+                <input type="email" id="login-email" class="form-input" required>
+
+                <label for="login-pass" class="form-label">Contraseña</label>
+                <input type="password" id="login-pass" class="form-input" required>
+
+                <button type="submit" class="btn btn-save" style="width: 100%; margin-top: 10px;">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CONTENIDO DE LA APP (Oculto por defecto)   -->
+    <!-- ========================================== -->
+    <div id="app-content" class="hidden">
+        
+        <!-- CABECERA: Estadísticas del usuario -->
+        <header class="app-header">
+            <h1>TimeApp</h1>
+            <div class="user-stats">
+                <span id="user-level" class="level-badge">Nivel 1</span>
+                <span id="user-xp" class="xp-text">0 XP</span>
+            </div>
+            <div class="progress-bar">
+                <div id="xp-bar" class="progress-fill" style="width: 0%;"></div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main>
+            <!-- VISTA 1: HOGAR -->
+            <div id="home-section">
+                
+                <!-- 1.1 Calendario Semanal (Actualizado) -->
+                <section class="calendar-section">
+                    <div class="calendar-header">
+                        <button id="prev-week" class="cal-nav">&lt;</button>
+                        <h2 id="month-year-display" style="border: none;">Mes Año</h2>
+                        <button id="next-week" class="cal-nav">&gt;</button>
+                    </div>
+                    <!-- Cabecera de días L M X J V S D -->
+                    <div class="calendar-grid">
+                        <div class="day-name">L</div>
+                        <div class="day-name">M</div>
+                        <div class="day-name">X</div>
+                        <div class="day-name">J</div>
+                        <div class="day-name">V</div>
+                        <div class="day-name">S</div>
+                        <div class="day-name">D</div>
+                    </div>
+                    <!-- Contenedor dinámico de la semana -->
+                    <div id="calendar-days" class="weekly-grid"></div>
+                </section>
+
+                <!-- 1.2 Tareas del Día -->
+                <section class="events-section">
+                    <h3>Tareas para hoy</h3>
+                    <div id="events-list" class="events-list">
+                        <!-- Generado dinámicamente desde app.js -->
+                    </div>
+                </section>
+
+                <!-- 1.3 Recompensas -->
+                <section class="rewards-section">
+                    <h3>Recompensas Disponibles</h3>
+                    <div id="rewards-list" class="rewards-list">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- VISTA 2: TODAS LAS TAREAS -->
+            <section id="pending-tasks-section" class="hidden">
+                <div class="tasks-header">
+                    <h2>Todas las tareas</h2>
+                    <select id="sort-tasks" class="sort-select">
+                        <option value="date-asc">Fecha (más próxima)</option>
+                        <option value="date-desc">Fecha (más lejana)</option>
+                        <option value="xp-desc">XP (Mayor a menor)</option>
+                        <option value="xp-asc">XP (Menor a mayor)</option>
+                    </select>
+                </div>
+                <div id="all-tasks-list" class="events-list">
                     <!-- Generado dinámicamente desde app.js -->
                 </div>
             </section>
+        </main>
 
-            <!-- 1.3 Recompensas -->
-            <section class="rewards-section">
-                <h3>Recompensas Disponibles</h3>
-                <div id="rewards-list" class="rewards-list">
-                    <!-- Generado dinámicamente -->
+        <!-- COMPONENTES FLOTANTES Y MODALES -->
+        
+        <!-- Botón Flotante para añadir tareas -->
+        <button id="fab-add" class="fab-btn">+</button>
+
+        <!-- Ventana emergente (Modal) -->
+        <div id="add-modal" class="modal-overlay hidden">
+            <!-- Dentro de tu modal -->
+            <div class="modal-content">
+                <h2>Nueva Tarea</h2>
+
+                <!-- Campo 1: Título -->
+                <label for="task-title" class="form-label">Título</label>
+                <input type="text" id="task-title" class="form-input" placeholder="Ej: Entregar práctica...">
+
+                <!-- Campo 2: Fecha -->
+                <label for="task-date" class="form-label">Fecha del evento</label>
+                <!-- El atributo min lo controlaremos por JS -->
+                <input type="date" id="task-date" class="form-input">
+
+                <!-- Campo 3: XP -->
+                <label for="task-xp" class="form-label">XP</label>
+                <input type="number" id="task-xp" class="form-input" placeholder="ej: 50">
+
+                <!-- Botones -->
+                <div class="modal-actions">
+                    <button type="button" id="cancel-btn" class="btn btn-cancel">Cancelar</button>
+                    <button type="button" id="save-btn" class="btn btn-save">Guardar</button>
                 </div>
-            </section>
-        </div>
-
-        <!-- VISTA 2: TODAS LAS TAREAS -->
-        <section id="pending-tasks-section" class="hidden">
-            <div class="tasks-header">
-                <h2>Todas las tareas</h2>
-                <select id="sort-tasks" class="sort-select">
-                    <option value="date-asc">Fecha (más próxima)</option>
-                    <option value="date-desc">Fecha (más lejana)</option>
-                    <option value="xp-desc">XP (Mayor a menor)</option>
-                    <option value="xp-asc">XP (Menor a mayor)</option>
-                </select>
-            </div>
-            <div id="all-tasks-list" class="events-list">
-                <!-- Generado dinámicamente desde app.js -->
-            </div>
-        </section>
-    </main>
-
-    <!-- ========================================== -->
-    <!-- COMPONENTES FLOTANTES Y MODALES            -->
-    <!-- ========================================== -->
-    
-    <!-- Botón Flotante para añadir tareas -->
-    <button id="fab-add" class="fab-btn">+</button>
-
-    <!-- Ventana emergente (Modal) -->
-    <div id="add-modal" class="modal-overlay hidden">
-        <!-- Dentro de tu modal -->
-        <div class="modal-content">
-            <h2>Nueva Tarea</h2>
-
-            <!-- Campo 1: Título -->
-            <label for="task-title" class="form-label">Título</label>
-            <input type="text" id="task-title" class="form-input" placeholder="Ej: Entregar práctica...">
-
-            <!-- Campo 2: Fecha -->
-            <label for="task-date" class="form-label">Fecha del evento</label>
-            <!-- El atributo min lo controlaremos por JS -->
-            <input type="date" id="task-date" class="form-input">
-
-            <!-- Campo 3: XP -->
-            <label for="task-xp" class="form-label">XP</label>
-            <input type="number" id="task-xp" class="form-input" placeholder="ej: 50">
-
-            <!-- Botones -->
-            <div class="modal-actions">
-                <button type="button" id="cancel-btn" class="btn btn-cancel">Cancelar</button>
-                <button type="button" id="save-btn" class="btn btn-save">Guardar</button>
             </div>
         </div>
+        
+        <!-- NAVEGACIÓN INFERIOR -->
+        <nav class="bottom-nav">
+            <button id="nav-home" class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span>Hogar</span>
+            </button>
+            <button id="nav-tasks" class="nav-item">
+                <span class="nav-icon">📋</span>
+                <span>Tareas</span>
+            </button>
+        </nav>
+
     </div>
-    
-    <!-- ========================================== -->
-    <!-- NAVEGACIÓN INFERIOR                        -->
-    <!-- ========================================== -->
-    <nav class="bottom-nav">
-        <button id="nav-home" class="nav-item active">
-            <span class="nav-icon">🏠</span>
-            <span>Hogar</span>
-        </button>
-        <button id="nav-tasks" class="nav-item">
-            <span class="nav-icon">📋</span>
-            <span>Tareas</span>
-        </button>
-    </nav>
 
     <!-- Scripts -->
     <script src="app.js"></script>

@@ -16,21 +16,43 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Helper: Busca el usuario por su nombre o lo crea si es nuevo
-def get_or_create_user(username, conn):
+# ==========================================
+# 3. SISTEMA DE LOGIN Y REGISTRO
+# ==========================================
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not username or not email or not password:
+        return jsonify({'error': 'Faltan datos de inicio de sesión'}), 400
+
+    conn = get_db_connection()
     cursor = conn.cursor()
-    user = cursor.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
     
-    if not user:
-        # Si no existe, lo creamos con Nivel 1 y 0 XP
-        cursor.execute('INSERT INTO users (username, level, xp_points) VALUES (?, 1, 0)', (username,))
+    # Buscamos si el usuario ya existe en la base de datos
+    user = cursor.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+
+    if user:
+        # Si existe, comprobamos que la contraseña coincide
+        if user['password'] != password:
+            conn.close()
+            return jsonify({'error': 'Contraseña incorrecta'}), 401
+    else:
+        # Si no existe, creamos la cuenta nueva con Nivel 1 y 0 XP
+        cursor.execute('''
+            INSERT INTO users (username, email, password, level, xp_points) 
+            VALUES (?, ?, ?, 1, 0)
+        ''', (username, email, password))
         conn.commit()
-        user = cursor.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-        
-    return user
+
+    conn.close()
+    return jsonify({'mensaje': 'Login exitoso', 'username': username}), 200
 
 # ==========================================
-# 3. RUTAS DE EVENTOS (TAREAS)
+# 4. RUTAS DE EVENTOS (TAREAS)
 # ==========================================
 
 # Obtener eventos pendientes
@@ -41,9 +63,14 @@ def get_events():
         return jsonify({'error': 'Se requiere un nombre de usuario'}), 400
 
     conn = get_db_connection()
-    user = get_or_create_user(username, conn)
+    # Obtenemos el ID del usuario validado
+    user = conn.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
     
-    # Filtramos por el user_id del usuario que consulta
+    if not user:
+        conn.close()
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    # Filtramos las tareas pendientes exclusivas de este usuario
     events = conn.execute('SELECT * FROM events WHERE status = "pending" AND user_id = ?', (user['id'],)).fetchall()
     conn.close()
     return jsonify([dict(ix) for ix in events])
@@ -51,7 +78,6 @@ def get_events():
 # Crear un evento nuevo
 @app.route('/events', methods=['POST'])
 def add_event():
-    # Recibimos los datos que envía el frontend
     data = request.get_json()
     username = data.get('username')
     titulo = data.get('title')
@@ -62,10 +88,14 @@ def add_event():
         return jsonify({'error': 'Faltan datos'}), 400
 
     conn = get_db_connection()
-    user = get_or_create_user(username, conn)
+    # Obtenemos el ID real del usuario para asociarle la tarea
+    user = conn.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+    
+    if not user:
+        conn.close()
+        return jsonify({'error': 'Usuario no encontrado'}), 404
     
     cursor = conn.cursor()
-    # Asociamos la nueva tarea al ID real del usuario
     cursor.execute('''
         INSERT INTO events (title, xp_reward, start_time, status, user_id) 
         VALUES (?, ?, ?, 'pending', ?)
@@ -85,6 +115,7 @@ def complete_event(event_id):
     evento = cursor.execute('SELECT * FROM events WHERE id = ?', (event_id,)).fetchone()
     
     if not evento or evento['status'] == 'completed':
+        conn.close()
         return jsonify({'error': 'Evento no válido o ya completado'}), 400
 
     user_id = evento['user_id']
@@ -115,7 +146,7 @@ def complete_event(event_id):
     })
 
 # ==========================================
-# 4. RUTAS DE PERFIL DE USUARIO
+# 5. RUTAS DE PERFIL DE USUARIO
 # ==========================================
 
 # Obtener el perfil del usuario (para ver su Nivel y XP)
@@ -126,12 +157,16 @@ def get_user():
         return jsonify({'error': 'Se requiere un nombre de usuario'}), 400
         
     conn = get_db_connection()
-    user = get_or_create_user(username, conn)
+    user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
     conn.close()
+    
+    if not user:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
     return jsonify(dict(user))
 
 # ==========================================
-# 5. EJECUCIÓN DEL SERVIDOR LOCAL
+# 6. EJECUCIÓN DEL SERVIDOR LOCAL
 # ==========================================
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -3,8 +3,8 @@
 // ==========================================
 const API_URL = 'https://CarlesMarti.pythonanywhere.com';
 
-// Intentamos recuperar el usuario guardado en el dispositivo
 let USERNAME = localStorage.getItem('timeapp_username');
+let currentWeekStart = new Date(); // Variable para controlar la navegación semanal
 
 // Elementos DOM - Perfil
 const userLevelEl = document.getElementById('user-level');
@@ -12,8 +12,8 @@ const userXpEl = document.getElementById('user-xp');
 const xpBarEl = document.getElementById('xp-bar');
 
 // Elementos DOM - Tareas y Vistas
-const eventsList = document.getElementById('events-list'); // Lista de hoy
-const allTasksList = document.getElementById('all-tasks-list'); // Lista completa
+const eventsList = document.getElementById('events-list'); 
+const allTasksList = document.getElementById('all-tasks-list'); 
 const homeSection = document.getElementById('home-section');
 const pendingSection = document.getElementById('pending-tasks-section');
 
@@ -23,37 +23,72 @@ const navTasks = document.getElementById('nav-tasks');
 const sortSelect = document.getElementById('sort-tasks');
 
 // Elementos DOM - Calendario y Modal
-let currentDate = new Date();
 const monthYearDisplay = document.getElementById('month-year-display');
-const calendarDays = document.getElementById('calendar-days');
+const calendarDays = document.getElementById('calendar-days'); // Ahora es .weekly-grid
 const fabAdd = document.getElementById('fab-add');
 const addModal = document.getElementById('add-modal');
 const cancelBtn = document.getElementById('cancel-btn');
 const saveBtn = document.getElementById('save-btn');
 const dateInput = document.getElementById('task-date');
 
+// ==========================================
+// 2. INICIALIZACIÓN Y LOGIN
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const loginScreen = document.getElementById('login-screen');
+    const appContent = document.getElementById('app-content');
+    const loginForm = document.getElementById('login-form');
 
-// ==========================================
-// 2. INICIALIZACIÓN DE LA APLICACIÓN
-// ==========================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // Si es la primera vez que entra, le pedimos un nombre
-    if (!USERNAME) {
-        USERNAME = prompt("Bienvenido a TimeApp. Introduce tu nombre de usuario único:");
-        if (!USERNAME || USERNAME.trim() === "") {
-            document.body.innerHTML = "<h2>Debes recargar la página e introducir un usuario para usar TimeApp.</h2>";
-            return; 
-        }
-        // Guardamos el usuario en este navegador/móvil
-        localStorage.setItem('timeapp_username', USERNAME);
+    // Si ya hay usuario, ocultar login y arrancar app
+    if (USERNAME) {
+        loginScreen.classList.add('hidden');
+        appContent.classList.remove('hidden');
+        initApp();
     }
+
+    // Interceptar envío del formulario de login
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = document.getElementById('login-user').value;
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, email: email, password: pass })
+            });
+
+            if (response.ok) {
+                USERNAME = user;
+                localStorage.setItem('timeapp_username', USERNAME);
+                loginScreen.classList.add('hidden');
+                appContent.classList.remove('hidden');
+                initApp();
+            } else {
+                const data = await response.json();
+                alert(data.error);
+            }
+        } catch (err) {
+            console.error("Error en login", err);
+            alert("No se pudo conectar con el servidor.");
+        }
+    });
+});
+
+async function initApp() {
+    // Calcular el lunes de la semana actual y poner la hora a 00:00
+    currentWeekStart.setHours(0, 0, 0, 0);
+    const day = currentWeekStart.getDay();
+    const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
+    currentWeekStart.setDate(diff);
 
     await loadUserProfile();
     await loadEvents();
-    renderCalendar();
-});
+    renderWeeklyCalendar();
+}
 
-// Registro del Service Worker (Para PWA y uso offline)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -62,12 +97,9 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-
 // ==========================================
 // 3. FUNCIONES DE USUARIO Y TAREAS
 // ==========================================
-
-// Cargar estadísticas del usuario
 async function loadUserProfile() {
     try {
         const response = await fetch(`${API_URL}/user?username=${USERNAME}`);
@@ -83,14 +115,14 @@ async function loadUserProfile() {
     }
 }
 
-// Cargar SOLO los eventos de HOY en la pestaña "Hogar"
 async function loadEvents() {
     try {
         const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
         const events = await response.json();
         
         const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const offset = today.getTimezoneOffset() * 60000;
+        const todayStr = (new Date(today - offset)).toISOString().split('T')[0];
         
         const todaysEvents = events.filter(ev => ev.start_time === todayStr && ev.status === 'pending');
         
@@ -106,11 +138,10 @@ async function loadEvents() {
 
             const el = document.createElement('div');
             el.className = 'event-card';
-            // Diseño aplicado de la tarjeta PDF
             el.innerHTML = `
                 <h4>${event.title}</h4>
                 <span class="event-date">Fecha de fin: ${formattedDate}</span>
-                <button class="action-btn" onclick="completeEvent(${event.id}, ${event.xp_reward})">${event.xp_reward} EXP</button>
+                <button class="action-btn" onclick="completeEvent(${event.id})">${event.xp_reward} EXP</button>
             `;
             eventsList.appendChild(el);
         });
@@ -119,14 +150,12 @@ async function loadEvents() {
     }
 }
 
-// Cargar y ordenar TODAS las tareas pendientes en la pestaña "Tareas"
 async function loadAllTasks() {
     try {
         const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
         let events = await response.json();
         events = events.filter(ev => ev.status === 'pending');
         
-        // Lógica de ordenación
         const sortType = sortSelect.value;
         if(sortType === 'date-asc') {
             events.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
@@ -150,11 +179,10 @@ async function loadAllTasks() {
             
             const el = document.createElement('div');
             el.className = 'event-card';
-            // Diseño aplicado de la tarjeta PDF
             el.innerHTML = `
                 <h4>${event.title}</h4>
                 <span class="event-date">Fecha de fin: ${formattedDate}</span>
-                <button class="action-btn" onclick="completeEvent(${event.id}, ${event.xp_reward})">${event.xp_reward} EXP</button>
+                <button class="action-btn" onclick="completeEvent(${event.id})">${event.xp_reward} EXP</button>
             `;
             allTasksList.appendChild(el);
         });
@@ -163,7 +191,6 @@ async function loadAllTasks() {
     }
 }
 
-// Completar un evento
 async function completeEvent(eventId) {
     try {
         const response = await fetch(`${API_URL}/events/${eventId}/complete`, {
@@ -182,6 +209,7 @@ async function completeEvent(eventId) {
             if(!pendingSection.classList.contains('hidden')) {
                 loadAllTasks();
             }
+            renderWeeklyCalendar();
         } else {
             alert(data.error || 'Error al completar el evento');
         }
@@ -190,68 +218,72 @@ async function completeEvent(eventId) {
     }
 }
 
-
 // ==========================================
-// 4. LÓGICA DEL CALENDARIO
+// 4. LÓGICA DEL CALENDARIO SEMANAL
 // ==========================================
-async function renderCalendar() {
-    currentDate.setDate(1);
-    const month = currentDate.getMonth();
-    const year = currentDate.getFullYear();
-    
+async function renderWeeklyCalendar() {
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
-    
-    const firstDayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1; 
-    const lastDay = new Date(year, month + 1, 0).getDate();
+    monthYearDisplay.textContent = `${monthNames[currentWeekStart.getMonth()]} ${currentWeekStart.getFullYear()}`;
     
     calendarDays.innerHTML = '';
     
-    const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
-    const events = await response.json();
-    const eventDates = events.map(ev => ev.start_time);
-
-    for (let x = 0; x < firstDayIndex; x++) {
-        calendarDays.innerHTML += `<div></div>`;
+    let events = [];
+    try {
+        const response = await fetch(`${API_URL}/events?username=${USERNAME}`);
+        if(response.ok) {
+            events = await response.json();
+        }
+    } catch(err) {
+        console.error("Error cargando eventos para calendario", err);
     }
-    
-    for (let i = 1; i <= lastDay; i++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+    // Dibujar los 7 días de la semana
+    for (let i = 0; i < 7; i++) {
+        const currentDay = new Date(currentWeekStart);
+        currentDay.setDate(currentWeekStart.getDate() + i);
         
-        let classes = 'cal-day';
-        if (i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+        // Ajuste de zona horaria para formato de búsqueda (YYYY-MM-DD)
+        const offset = currentDay.getTimezoneOffset() * 60000;
+        const dateStr = (new Date(currentDay - offset)).toISOString().split('T')[0];
+
+        // Filtrar tareas que caen en este día específico
+        const dayEvents = events.filter(ev => ev.start_time === dateStr && ev.status === 'pending');
+        
+        // Generar etiquetas HTML de tareas
+        let tasksHTML = dayEvents.map(ev => `<div class="cal-task">${ev.title}</div>`).join('');
+
+        let classes = 'weekly-day';
+        if (currentDay.toDateString() === new Date().toDateString()) {
             classes += ' today';
         }
-        if (eventDates.includes(dateStr)) {
-            classes += ' has-event';
-        }
-        
-        calendarDays.innerHTML += `<div class="${classes}">${i}</div>`;
+
+        calendarDays.innerHTML += `
+            <div class="${classes}">
+                <div class="weekly-day-num">${currentDay.getDate()}</div>
+                ${tasksHTML}
+            </div>
+        `;
     }
 }
 
-document.getElementById('prev-month').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar();
+// Navegación del Calendario
+document.getElementById('prev-week').addEventListener('click', () => {
+    currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+    renderWeeklyCalendar();
 });
 
-document.getElementById('next-month').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar();
+document.getElementById('next-week').addEventListener('click', () => {
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    renderWeeklyCalendar();
 });
 
+// Bloqueo de fecha del pasado para el Modal
 if (dateInput) {
-    // Generar la fecha de hoy en formato YYYY-MM-DD
     const today = new Date();
-    
-    // Ajuste de zona horaria para evitar que el UTC cambie el día si es muy tarde
     const offset = today.getTimezoneOffset() * 60000; 
     const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
-    
-    // Establecer el mínimo permitido
     dateInput.setAttribute('min', localISOTime);
 }
-
 
 // ==========================================
 // 5. NAVEGACIÓN Y FILTROS
@@ -274,7 +306,6 @@ navTasks.addEventListener('click', () => {
 
 sortSelect.addEventListener('change', loadAllTasks);
 
-
 // ==========================================
 // 6. MODAL Y CREACIÓN DE EVENTOS
 // ==========================================
@@ -288,16 +319,13 @@ saveBtn.addEventListener('click', async () => {
     
     if(!title || !date || !xp) return alert("Rellena todos los campos");
 
-    // --- NUEVO: Validar que la fecha no es del pasado ---
     const today = new Date();
-    // Ajuste de zona horaria para obtener la fecha local exacta de hoy
     const offset = today.getTimezoneOffset() * 60000; 
     const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
     
     if (date < localISOTime) {
         return alert("No puedes programar tareas en el pasado. Selecciona la fecha de hoy o una futura.");
     }
-    // ----------------------------------------------------
 
     try {
         const response = await fetch(`${API_URL}/events`, {
@@ -321,7 +349,7 @@ saveBtn.addEventListener('click', async () => {
             if(!pendingSection.classList.contains('hidden')) {
                 loadAllTasks();
             }
-            renderCalendar();
+            renderWeeklyCalendar();
         }
     } catch (error) {
         console.error('Error guardando evento:', error);
